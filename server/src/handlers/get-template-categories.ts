@@ -1,9 +1,19 @@
 
+import { db } from '../db';
+import { templateCategoriesTable } from '../db/schema';
 import { type TemplateCategory } from '../schema';
+import { asc } from 'drizzle-orm';
 
 export const getTemplateCategories = async (): Promise<TemplateCategory[]> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is fetching all template categories ordered by sort_order.
-  // Used for displaying categories on the landing page (business, personal, real estate).
-  return Promise.resolve([]);
+  try {
+    const results = await db.select()
+      .from(templateCategoriesTable)
+      .orderBy(asc(templateCategoriesTable.sort_order))
+      .execute();
+
+    return results;
+  } catch (error) {
+    console.error('Failed to fetch template categories:', error);
+    throw error;
+  }
 };

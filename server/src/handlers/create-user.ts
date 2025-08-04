@@ -1,19 +1,28 @@
 
+import { db } from '../db';
+import { usersTable } from '../db/schema';
 import { type CreateUserInput, type User } from '../schema';
 
 export const createUser = async (input: CreateUserInput): Promise<User> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is creating a new user account and persisting it in the database.
-  // Should handle email uniqueness validation and set default trial period.
-  return Promise.resolve({
-    id: 0,
-    email: input.email,
-    name: input.name,
-    avatar_url: input.avatar_url || null,
-    subscription_type: input.subscription_type || 'free',
-    subscription_expires_at: null,
-    trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-    created_at: new Date(),
-    updated_at: new Date()
-  } as User);
+  try {
+    // Set default trial period to 7 days from now
+    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    
+    // Insert user record
+    const result = await db.insert(usersTable)
+      .values({
+        email: input.email,
+        name: input.name,
+        avatar_url: input.avatar_url || null,
+        subscription_type: input.subscription_type || 'free',
+        trial_ends_at: trialEndsAt
+      })
+      .returning()
+      .execute();
+
+    return result[0];
+  } catch (error) {
+    console.error('User creation failed:', error);
+    throw error;
+  }
 };
