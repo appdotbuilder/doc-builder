@@ -302,7 +302,19 @@ export function DocumentEditor({
             <div className="lg:w-80">
               <Card className="sticky top-24">
                 <CardHeader>
-                  <CardTitle className="text-lg">📄 Live Preview</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">📄 Live Preview</CardTitle>
+                    <div className="group relative">
+                      <div className="text-blue-500 cursor-help">ℹ️</div>
+                      <div className="absolute right-0 top-6 w-72 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                        <div className="text-sm">
+                          <div className="font-semibold text-blue-800 mb-2">📝 Template Editing Mode</div>
+                          <p className="text-gray-700 mb-2">This preview shows structured template field replacement for professional document creation.</p>
+                          <p className="text-xs text-gray-600">Full editing of uploaded .doc/.pdf files requires advanced integrations (Microsoft Graph, Adobe PDF Services, etc.)</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">
                     💡 Simulated template preview showing how placeholders will be replaced
                   </p>

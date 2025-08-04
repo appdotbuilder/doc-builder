@@ -56,12 +56,26 @@ export function AuthModal({ onClose, onAuth, onDemoLogin }: AuthModalProps) {
         try {
           const newUser = await trpc.createUser.mutate(createUserInput);
           onAuth(newUser);
-        } catch (backendError) {
+        } catch (backendError: unknown) {
           console.error('Backend user creation failed:', backendError);
-          // Show specific error message to user
-          const errorMessage = backendError instanceof Error 
-            ? backendError.message 
-            : 'Failed to create account. Please try again.';
+          // Handle specific error cases
+          let errorMessage = 'Failed to create account. Please try again.';
+          
+          if (backendError && typeof backendError === 'object' && 'message' in backendError) {
+            const message = (backendError as { message: string }).message;
+            if (message.includes('already exists') || message.includes('duplicate')) {
+              errorMessage = 'An account with this email already exists. Please try signing in instead.';
+            } else {
+              errorMessage = message;
+            }
+          } else if (backendError && typeof backendError === 'object' && 'data' in backendError) {
+            // Handle tRPC error format
+            const data = (backendError as { data: { message?: string } }).data;
+            if (data?.message) {
+              errorMessage = data.message;
+            }
+          }
+          
           setError(errorMessage);
           return;
         }

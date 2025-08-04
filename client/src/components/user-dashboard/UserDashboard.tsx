@@ -391,9 +391,23 @@ function DocumentList({
               </div>
               
               <div className="flex gap-2">
-                <Button size="sm" className="flex-1">
-                  📖 View
-                </Button>
+                {doc.file_url ? (
+                  <Button 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => {
+                      if (doc.file_url) {
+                        window.open(doc.file_url, '_blank');
+                      }
+                    }}
+                  >
+                    📖 View / Download
+                  </Button>
+                ) : (
+                  <Button size="sm" className="flex-1">
+                    📖 View
+                  </Button>
+                )}
                 <Button size="sm" variant="outline" className="flex-1">
                   📥 Download
                 </Button>
@@ -479,12 +493,13 @@ function FileUploadSection({ onFileUpload, isUploading, uploadedFiles }: FileUpl
             <div className="flex items-start gap-3">
               <div className="text-blue-600 text-lg">ℹ️</div>
               <div className="text-sm text-blue-800">
-                <div className="font-semibold mb-2">About File Editing:</div>
+                <div className="font-semibold mb-2">Current File Capabilities:</div>
                 <ul className="space-y-1 text-xs">
-                  <li>• <strong>Template Filling:</strong> Fill structured placeholders in uploaded documents</li>
-                  <li>• <strong>Basic Viewing:</strong> View and download your uploaded files</li>
-                  <li>• <strong>Advanced Editing:</strong> Full in-browser editing of .doc/.pdf requires external integrations (Microsoft Graph, Google Docs API, Adobe PDF Services)</li>
-                  <li>• <strong>Supported Formats:</strong> PDF, DOC, DOCX files up to 10MB each</li>
+                  <li>• <strong>✅ View & Download:</strong> Open uploaded files in browser for viewing and download</li>
+                  <li>• <strong>✅ Template Creation:</strong> Use our structured template editor for professional documents</li>
+                  <li>• <strong>⚠️ Limited Editing:</strong> Direct text/image editing within uploaded .pdf/.doc files requires advanced integrations</li>
+                  <li>• <strong>📄 File Support:</strong> PDF, DOC, DOCX files up to 10MB each</li>
+                  <li>• <strong>🔜 Coming Soon:</strong> Advanced in-browser editing with Microsoft Graph, Adobe PDF Services</li>
                 </ul>
               </div>
             </div>

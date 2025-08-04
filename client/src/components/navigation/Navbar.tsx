@@ -28,7 +28,7 @@ export function Navbar({ isAuthenticated, user, onNavigate, onLogin, onLogout }:
         {/* Navigation Links */}
         <div className="hidden md:flex items-center space-x-6">
           <button 
-            onClick={() => onNavigate('landing')}
+            onClick={() => onNavigate('templates')}
             className="text-gray-600 hover:text-gray-800 transition-colors"
           >
             Templates

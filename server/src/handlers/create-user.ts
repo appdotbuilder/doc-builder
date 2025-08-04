@@ -32,12 +32,24 @@ export const createUser = async (input: CreateUserInput): Promise<User> => {
       .execute();
 
     return result[0];
-  } catch (error) {
+  } catch (error: any) {
     console.error('User creation failed:', error);
-    // Re-throw with more specific error handling
+    
+    // Handle database constraint violations
+    if (error?.constraint_name === 'users_email_unique' || error?.code === '23505') {
+      throw new Error('An account with this email address already exists');
+    }
+    
+    // Handle our custom validation errors
     if (error instanceof Error && error.message.includes('already exists')) {
       throw new Error('An account with this email address already exists');
     }
-    throw new Error('Failed to create user account');
+    
+    // Handle other potential database errors
+    if (error?.code) {
+      console.error('Database error code:', error.code);
+    }
+    
+    throw new Error('Failed to create user account. Please try again.');
   }
 };

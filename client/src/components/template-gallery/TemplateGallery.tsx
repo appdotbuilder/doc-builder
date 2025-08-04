@@ -8,18 +8,22 @@ import { trpc } from '@/utils/trpc';
 import type { TemplateCategory, Template } from '../../../../server/src/schema';
 
 interface TemplateGalleryProps {
-  category: TemplateCategory;
+  category: TemplateCategory | null;
+  categories: TemplateCategory[];
+  onCategorySelect: (category: TemplateCategory) => void;
   onTemplateSelect: (template: Template) => void;
   onBack: () => void;
 }
 
-export function TemplateGallery({ category, onTemplateSelect, onBack }: TemplateGalleryProps) {
+export function TemplateGallery({ category, categories, onCategorySelect, onTemplateSelect, onBack }: TemplateGalleryProps) {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Load templates for the selected category
   const loadTemplates = useCallback(async () => {
+    if (!category) return;
+    
     setIsLoading(true);
     try {
       const result = await trpc.getTemplatesByCategory.query({
@@ -90,17 +94,79 @@ export function TemplateGallery({ category, onTemplateSelect, onBack }: Template
     } finally {
       setIsLoading(false);
     }
-  }, [category.id]);
+  }, [category]);
 
   useEffect(() => {
-    loadTemplates();
-  }, [loadTemplates]);
+    if (category) {
+      loadTemplates();
+    } else {
+      setIsLoading(false);
+    }
+  }, [loadTemplates, category]);
 
   // Filter templates based on search term
   const filteredTemplates = templates.filter((template: Template) =>
     template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (template.description && template.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // If no category is selected, show category selection
+  if (!category) {
+    return (
+      <div className="min-h-screen py-8 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="mb-8">
+            <Button 
+              variant="ghost" 
+              onClick={onBack}
+              className="mb-4 text-gray-600 hover:text-gray-800"
+            >
+              ← Back to Home
+            </Button>
+            
+            <div className="text-center mb-12">
+              <h1 className="text-3xl font-bold text-gray-800 mb-4">
+                Choose a Template Category
+              </h1>
+              <p className="text-gray-600 text-lg">
+                Select a category to explore professional templates
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              {categories.map((cat: TemplateCategory) => (
+                <Card 
+                  key={cat.id}
+                  className="hover:shadow-lg transition-all duration-300 cursor-pointer group border-2 hover:border-blue-200"
+                  onClick={() => onCategorySelect(cat)}
+                >
+                  <CardHeader className="text-center pb-4">
+                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
+                      {cat.icon_url}
+                    </div>
+                    <CardTitle className="text-xl group-hover:text-blue-600 transition-colors">
+                      {cat.name}
+                    </CardTitle>
+                    <CardDescription className="text-gray-600">
+                      {cat.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <Button 
+                      variant="outline" 
+                      className="w-full group-hover:bg-blue-50 group-hover:border-blue-300"
+                    >
+                      Explore Templates →
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-8 px-4">

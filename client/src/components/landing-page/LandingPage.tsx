@@ -7,9 +7,10 @@ import type { TemplateCategory } from '../../../../server/src/schema';
 interface LandingPageProps {
   categories: TemplateCategory[];
   onCategorySelect: (category: TemplateCategory) => void;
+  onStartCreating: () => void;
 }
 
-export function LandingPage({ categories, onCategorySelect }: LandingPageProps) {
+export function LandingPage({ categories, onCategorySelect, onStartCreating }: LandingPageProps) {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -25,7 +26,11 @@ export function LandingPage({ categories, onCategorySelect }: LandingPageProps) 
             and download your completed documents instantly.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-6">
+            <Button 
+              size="lg" 
+              className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-6"
+              onClick={onStartCreating}
+            >
               🚀 Start Creating
             </Button>
             <Button size="lg" variant="outline" className="text-lg px-8 py-6">

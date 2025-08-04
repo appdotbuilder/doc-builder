@@ -121,6 +121,13 @@ function App() {
       handleAuthRequired();
       return;
     }
+    
+    // For templates view, show all categories if none selected
+    if (view === 'templates' && !selectedCategory && categories.length > 0) {
+      // Auto-select first category or let user choose
+      setSelectedCategory(null); // Let TemplateGallery handle this
+    }
+    
     setCurrentView(view);
   };
 
@@ -150,12 +157,15 @@ function App() {
           <LandingPage 
             categories={categories}
             onCategorySelect={handleCategorySelect}
+            onStartCreating={() => setCurrentView('templates')}
           />
         )}
 
-        {currentView === 'templates' && selectedCategory && (
+        {currentView === 'templates' && (
           <TemplateGallery
             category={selectedCategory}
+            categories={categories}
+            onCategorySelect={handleCategorySelect}
             onTemplateSelect={handleTemplateSelect}
             onBack={() => setCurrentView('landing')}
           />
