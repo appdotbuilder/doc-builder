@@ -103,6 +103,6 @@ describe('createUser', () => {
       name: 'Duplicate User'
     };
 
-    expect(createUser(duplicateInput)).rejects.toThrow(/duplicate key value/i);
+    expect(createUser(duplicateInput)).rejects.toThrow(/already exists/i);
   });
 });

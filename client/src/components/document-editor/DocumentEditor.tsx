@@ -36,17 +36,17 @@ export function DocumentEditor({
   const [isLoading, setIsLoading] = useState(false);
   const [documentTitle, setDocumentTitle] = useState(`${template.title} - ${new Date().toLocaleDateString()}`);
 
-  // Generate form fields based on template type
+  // Generate form fields based on template type with placeholder examples
   const getFormFields = useCallback(() => {
     // This would normally come from template.template_data
     const baseFields = [
-      { id: 'full_name', label: 'Full Name', type: 'text', required: true, step: 0 },
-      { id: 'email', label: 'Email Address', type: 'email', required: true, step: 0 },
-      { id: 'phone', label: 'Phone Number', type: 'tel', required: false, step: 0 },
-      { id: 'address', label: 'Address', type: 'textarea', required: true, step: 1 },
-      { id: 'company', label: 'Company Name', type: 'text', required: false, step: 1 },
-      { id: 'position', label: 'Position/Title', type: 'text', required: false, step: 1 },
-      { id: 'additional_info', label: 'Additional Information', type: 'textarea', required: false, step: 2 }
+      { id: 'full_name', label: 'Full Name', type: 'text', required: true, step: 0, placeholder: '[FULL_NAME]' },
+      { id: 'email', label: 'Email Address', type: 'email', required: true, step: 0, placeholder: '[EMAIL]' },
+      { id: 'phone', label: 'Phone Number', type: 'tel', required: false, step: 0, placeholder: '[PHONE]' },
+      { id: 'address', label: 'Address', type: 'textarea', required: true, step: 1, placeholder: '[ADDRESS]' },
+      { id: 'company', label: 'Company Name', type: 'text', required: false, step: 1, placeholder: '[COMPANY]' },
+      { id: 'position', label: 'Position/Title', type: 'text', required: false, step: 1, placeholder: '[POSITION]' },
+      { id: 'additional_info', label: 'Additional Information', type: 'textarea', required: false, step: 2, placeholder: '[ADDITIONAL_INFO]' }
     ];
 
     return baseFields;
@@ -303,31 +303,81 @@ export function DocumentEditor({
               <Card className="sticky top-24">
                 <CardHeader>
                   <CardTitle className="text-lg">📄 Live Preview</CardTitle>
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 Simulated template preview showing how placeholders will be replaced
+                  </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-white border-2 border-gray-200 rounded p-4 min-h-[400px] text-sm">
-                    <div className="text-center mb-4 font-bold text-lg">
+                  <div className="bg-white border-2 border-gray-200 rounded p-4 min-h-[400px] text-sm font-mono leading-relaxed">
+                    <div className="text-center mb-6 font-bold text-lg not-italic">
                       {documentTitle}
                     </div>
-                    <div className="space-y-3 text-gray-700">
-                      {Object.entries(formData).map(([key, value]) => {
-                        const field = formFields.find(f => f.id === key);
-                        if (!value || !field) return null;
-                        return (
-                          <div key={key} className="border-b pb-2">
-                            <div className="font-medium text-gray-800">{field.label}:</div>
-                            <div className="bg-yellow-100 px-2 py-1 rounded">
-                              {value}
-                            </div>
+                    
+                    {/* Document-like preview with filled placeholders */}
+                    <div className="space-y-4 text-gray-800">
+                      <div className="border-b border-dotted border-gray-300 pb-3">
+                        <div className="text-sm font-semibold mb-2 not-italic">PERSONAL INFORMATION</div>
+                        <div className="space-y-1">
+                          <div>
+                            Name: <span className={formData.full_name ? "bg-green-100 px-1 font-semibold" : "bg-gray-100 px-1"}>
+                              {formData.full_name || '[FULL_NAME]'}
+                            </span>
                           </div>
-                        );
-                      })}
-                      
-                      {Object.keys(formData).length === 0 && (
-                        <div className="text-center text-gray-400 py-8">
-                          Fill out the form to see your document preview
+                          <div>
+                            Email: <span className={formData.email ? "bg-green-100 px-1 font-semibold" : "bg-gray-100 px-1"}>
+                              {formData.email || '[EMAIL]'}
+                            </span>
+                          </div>
+                          <div>
+                            Phone: <span className={formData.phone ? "bg-green-100 px-1 font-semibold" : "bg-gray-100 px-1"}>
+                              {formData.phone || '[PHONE]'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border-b border-dotted border-gray-300 pb-3">
+                        <div className="text-sm font-semibold mb-2 not-italic">PROFESSIONAL DETAILS</div>
+                        <div className="space-y-1">
+                          <div>
+                            Company: <span className={formData.company ? "bg-green-100 px-1 font-semibold" : "bg-gray-100 px-1"}>
+                              {formData.company || '[COMPANY]'}
+                            </span>
+                          </div>
+                          <div>
+                            Position: <span className={formData.position ? "bg-green-100 px-1 font-semibold" : "bg-gray-100 px-1"}>
+                              {formData.position || '[POSITION]'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border-b border-dotted border-gray-300 pb-3">
+                        <div className="text-sm font-semibold mb-2 not-italic">ADDRESS</div>
+                        <div className={formData.address ? "bg-green-100 px-1 py-2 font-semibold" : "bg-gray-100 px-1 py-2"}>
+                          {formData.address || '[ADDRESS]'}
+                        </div>
+                      </div>
+
+                      {formData.additional_info && (
+                        <div className="border-b border-dotted border-gray-300 pb-3">
+                          <div className="text-sm font-semibold mb-2 not-italic">ADDITIONAL INFORMATION</div>
+                          <div className="bg-green-100 px-1 py-2 font-semibold">
+                            {formData.additional_info}
+                          </div>
                         </div>
                       )}
+                      
+                      {Object.keys(formData).length === 0 && (
+                        <div className="text-center text-gray-400 py-8 not-italic">
+                          📝 Fill out the form to see how your data replaces the [placeholders]
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-6 p-3 bg-blue-50 rounded text-xs text-blue-700 border border-blue-200 not-italic">
+                      <div className="font-semibold mb-1">ℹ️ About Document Editing:</div>
+                      <div>This preview shows structured template filling. Full editing of uploaded .doc/.pdf files requires external integrations (Microsoft Graph, Google Docs API, etc.).</div>
                     </div>
                   </div>
                 </CardContent>

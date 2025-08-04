@@ -23,13 +23,16 @@ export function AuthModal({ onClose, onAuth, onDemoLogin }: AuthModalProps) {
     name: ''
   });
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
       if (isLogin) {
-        // Login user authentication
+        // Login authentication simulation
         const authenticatedUser: User = {
           id: 1,
           email: formData.email,
@@ -43,32 +46,29 @@ export function AuthModal({ onClose, onAuth, onDemoLogin }: AuthModalProps) {
         };
         onAuth(authenticatedUser);
       } else {
-        // Create new user
+        // Create new user via backend
         const createUserInput: CreateUserInput = {
           email: formData.email,
           name: formData.name,
           subscription_type: 'free'
         };
 
-        const newUser = await trpc.createUser.mutate(createUserInput);
-        
-        // Fallback user creation response
-        const createdUser: User = {
-          id: Date.now(),
-          email: formData.email,
-          name: formData.name,
-          avatar_url: null,
-          subscription_type: 'free',
-          subscription_expires_at: null,
-          trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          created_at: new Date(),
-          updated_at: new Date()
-        };
-
-        onAuth(newUser.id ? newUser : createdUser);
+        try {
+          const newUser = await trpc.createUser.mutate(createUserInput);
+          onAuth(newUser);
+        } catch (backendError) {
+          console.error('Backend user creation failed:', backendError);
+          // Show specific error message to user
+          const errorMessage = backendError instanceof Error 
+            ? backendError.message 
+            : 'Failed to create account. Please try again.';
+          setError(errorMessage);
+          return;
+        }
       }
     } catch (error) {
       console.error('Auth failed:', error);
+      setError('Authentication failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -106,6 +106,13 @@ export function AuthModal({ onClose, onAuth, onDemoLogin }: AuthModalProps) {
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
           {/* Social Auth Buttons */}
           <div className="grid grid-cols-2 gap-3">
             <Button 

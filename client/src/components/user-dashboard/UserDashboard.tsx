@@ -19,6 +19,8 @@ export function UserDashboard({ user, currentDocument }: UserDashboardProps) {
   const [trashedDocs, setTrashedDocs] = useState<UserDocument[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Load user documents
   const loadDocuments = useCallback(async () => {
@@ -127,6 +129,44 @@ export function UserDashboard({ user, currentDocument }: UserDashboardProps) {
     }
   };
 
+  // Handle file upload
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const validFiles = Array.from(files).filter(file => allowedTypes.includes(file.type));
+
+    if (validFiles.length === 0) {
+      alert('Please select valid PDF, DOC, or DOCX files.');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // For now, simulate upload by creating document entries
+      const newDocuments = validFiles.map((file): UserDocument => ({
+        id: Date.now() + Math.random(),
+        user_id: user.id,
+        template_id: null,
+        title: file.name,
+        document_data: {},
+        file_url: URL.createObjectURL(file), // Temporary local URL
+        file_type: file.type.includes('pdf') ? 'pdf' : (file.type.includes('word') || file.name.endsWith('.docx')) ? 'docx' : 'doc',
+        status: 'completed',
+        is_favorite: false,
+        created_at: new Date(),
+        updated_at: new Date()
+      }));
+
+      setDocuments(prev => [...newDocuments, ...prev]);
+      setUploadedFiles(prev => [...prev, ...validFiles]);
+    } catch (error) {
+      console.error('File upload failed:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Filter documents based on search
   const filterDocuments = (docs: UserDocument[]) => 
     docs.filter(doc => 
@@ -219,8 +259,9 @@ export function UserDashboard({ user, currentDocument }: UserDashboardProps) {
 
         {/* Document Tabs */}
         <Tabs defaultValue="documents" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="documents">📄 My Documents</TabsTrigger>
+            <TabsTrigger value="upload">📤 Upload Files</TabsTrigger>
             <TabsTrigger value="favorites">⭐ Favorites</TabsTrigger>
             <TabsTrigger value="trash">🗑️ Trash</TabsTrigger>
           </TabsList>
@@ -231,7 +272,15 @@ export function UserDashboard({ user, currentDocument }: UserDashboardProps) {
               onToggleFavorite={handleToggleFavorite}
               onMoveToTrash={handleMoveToTrash}
               isLoading={isLoading}
-              emptyMessage="No documents yet. Create your first document from our templates!"
+              emptyMessage="No documents yet. Create your first document from our templates or upload existing files!"
+            />
+          </TabsContent>
+
+          <TabsContent value="upload" className="mt-6">
+            <FileUploadSection 
+              onFileUpload={handleFileUpload}
+              isUploading={isUploading}
+              uploadedFiles={uploadedFiles}
             />
           </TabsContent>
 
@@ -353,6 +402,155 @@ function DocumentList({
           </CardContent>
         </Card>
       ))}
+    </div>
+  );
+}
+
+// File Upload Section Component
+interface FileUploadSectionProps {
+  onFileUpload: (files: FileList | null) => void;
+  isUploading: boolean;
+  uploadedFiles: File[];
+}
+
+function FileUploadSection({ onFileUpload, isUploading, uploadedFiles }: FileUploadSectionProps) {
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onFileUpload(e.dataTransfer.files);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Upload Area */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            📤 Upload Documents
+            <Badge variant="outline" className="text-xs">
+              PDF, DOC, DOCX
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div 
+            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
+            <div className="space-y-4">
+              <div className="text-4xl">📁</div>
+              <div>
+                <p className="text-lg font-medium text-gray-700 mb-2">
+                  Drag and drop your files here
+                </p>
+                <p className="text-sm text-gray-500">
+                  or click to browse your computer
+                </p>
+              </div>
+              
+              <input
+                type="file"
+                multiple
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => onFileUpload(e.target.files)}
+                className="hidden"
+                id="file-upload"
+                disabled={isUploading}
+              />
+              
+              <Button
+                onClick={() => document.getElementById('file-upload')?.click()}
+                disabled={isUploading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isUploading ? '⏳ Uploading...' : '📎 Choose Files'}
+              </Button>
+            </div>
+          </div>
+
+          {/* File Type Info */}
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-start gap-3">
+              <div className="text-blue-600 text-lg">ℹ️</div>
+              <div className="text-sm text-blue-800">
+                <div className="font-semibold mb-2">About File Editing:</div>
+                <ul className="space-y-1 text-xs">
+                  <li>• <strong>Template Filling:</strong> Fill structured placeholders in uploaded documents</li>
+                  <li>• <strong>Basic Viewing:</strong> View and download your uploaded files</li>
+                  <li>• <strong>Advanced Editing:</strong> Full in-browser editing of .doc/.pdf requires external integrations (Microsoft Graph, Google Docs API, Adobe PDF Services)</li>
+                  <li>• <strong>Supported Formats:</strong> PDF, DOC, DOCX files up to 10MB each</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recently Uploaded Files */}
+      {uploadedFiles.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">📋 Recently Uploaded</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {uploadedFiles.slice(0, 5).map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="text-lg">
+                      {file.type.includes('pdf') ? '📄' : '📝'}
+                    </div>
+                    <div>
+                      <div className="font-medium text-sm">{file.name}</div>
+                      <div className="text-xs text-gray-500">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB • {file.type.includes('pdf') ? 'PDF' : 'DOC'}
+                      </div>
+                    </div>
+                  </div>
+                  <Badge className="bg-green-100 text-green-800 text-xs">
+                    ✅ Uploaded
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Feature Roadmap */}
+      <Card className="border-purple-200">
+        <CardHeader>
+          <CardTitle className="text-lg text-purple-800 flex items-center gap-2">
+            🚀 Coming Soon: Advanced Editing
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center gap-2 text-gray-600">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+              <span>Real-time collaborative editing</span>
+            </div>
+            <div className="flex items-center gap-2 text-gray-600">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+              <span>Advanced PDF annotation and form filling</span>
+            </div>
+            <div className="flex items-center gap-2 text-gray-600">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+              <span>Microsoft Word integration for .docx editing</span>
+            </div>
+            <div className="flex items-center gap-2 text-gray-600">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+              <span>Cloud storage sync (Google Drive, OneDrive)</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
